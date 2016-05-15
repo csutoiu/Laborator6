@@ -67,8 +67,26 @@ public class ServerFragment extends Fragment {
             PrintStream responsePrintWriter = new PrintStream(responseStream);
 
             while (isRunning) {
-
-                // TODO: exercise 7a
+            	String receivedText = null;
+            	
+            	try {
+					receivedText = requestReader.readLine();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            	
+            	if(receivedText.equals(Constants.END_GAME)) {
+            		Log.d(Constants.TAG, "End game");
+            		serverHistoryTextView.post(new Runnable() {
+						@Override
+						public void run() {
+							serverHistoryTextView.setText("Communication ended!\n"+serverHistoryTextView.getText());
+						}
+					});
+            		isRunning = false;
+            	}
+                
 
             }
             try {

@@ -1,5 +1,8 @@
 package ro.pub.cs.systems.eim.lab06.clientservercommunication.views;
 
+import java.io.BufferedReader;
+import java.net.Socket;
+
 import android.app.Fragment;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -12,6 +15,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import ro.pub.cs.systems.eim.lab06.clientservercommunication.R;
 import ro.pub.cs.systems.eim.lab06.clientservercommunication.general.Constants;
+import ro.pub.cs.systems.eim.lab06.clientservercommunication.general.Utilities;
 
 public class ClientFragment extends Fragment {
 
@@ -25,6 +29,16 @@ public class ClientFragment extends Fragment {
         protected Void doInBackground(String... params) {
             try {
 
+            	int port = Integer.parseInt(params[1]);
+            	Socket client = new Socket(params[0], port);
+            	BufferedReader bufferedReader = Utilities.getReader(client);
+            	String message = bufferedReader.readLine();
+            	while(message != null) {
+            		publishProgress(message);
+            		message = bufferedReader.readLine();
+            	}
+            	
+            	client.close();
                 // TODO: exercise 6b
                 // - get the connection parameters (serverAddress and serverPort from parameters - on positions 0 and 1)
                 // - open a socket to the server
@@ -46,12 +60,14 @@ public class ClientFragment extends Fragment {
         protected void onPreExecute() {
         	// TODO: exercise 6b
             // - reset the content of serverMessageTextView
+        	serverMessageTextView.setText("");
         }
 
         @Override
         protected void onProgressUpdate(String... progress) {
         	// TODO: exercise 6b
             // - append the content to serverMessageTextView
+        	serverMessageTextView.append(progress[0]);
         }
 
         @Override

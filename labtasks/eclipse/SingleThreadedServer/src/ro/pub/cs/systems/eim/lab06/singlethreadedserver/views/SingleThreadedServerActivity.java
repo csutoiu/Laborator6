@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ThreadFactory;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -47,6 +48,30 @@ public class SingleThreadedServerActivity extends Activity {
         }
 
     }
+    
+    private class HandlerComunication extends Thread {
+    	
+    	private Socket socket;
+    	private String message;
+    	
+    	HandlerComunication(Socket socket, String message) {
+    		this.socket = socket;
+    		this.message = message;
+    	}
+    	
+    	@Override
+        public void run() {
+    		PrintWriter printWriter;
+			try {
+				printWriter = Utilities.getWriter(socket);
+				printWriter.println(message);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+            
+    	}
+    }
 
     private ServerThread serverThread;
     private class ServerThread extends Thread {
@@ -83,8 +108,8 @@ public class SingleThreadedServerActivity extends Activity {
                 while (isRunning) {
                     Socket socket = serverSocket.accept();
                     Log.v(Constants.TAG, "Connection opened with " + socket.getInetAddress() + ":" + socket.getLocalPort());
-                    PrintWriter printWriter = Utilities.getWriter(socket);
-                    printWriter.println(serverTextEditText.getText().toString());
+                    HandlerComunication handler = new HandlerComunication(socket, serverTextEditText.getText().toString());
+                    handler.run();
                     socket.close();
                     Log.v(Constants.TAG, "Connection closed");
                 }
@@ -123,5 +148,13 @@ public class SingleThreadedServerActivity extends Activity {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+	
+	@Override
+	public void onDestroy() {
+	  super.onDestroy();
+	  if (serverThread != null) {
+	    serverThread.stopServer();
+	  }
 	}
 }
